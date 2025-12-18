@@ -69,20 +69,34 @@ async function handleFetch() {
         currentRevisions = revisions;
         
         elements.versionSelect.innerHTML = '';
-        revisions.forEach(rev => {
-            const versionNum = rev.revision;
-            const createdAt = rev.created_at ? new Date(rev.created_at).toLocaleString() : 'Unknown date';
-            
-            if (versionNum !== undefined && versionNum !== null) {
+        revisions.forEach((rev, index) => {
+            // WebSim API may use different field names; try them in order
+            const versionNumRaw = rev.version ?? rev.revision ?? rev.version_number ?? rev.versionNumber ?? index + 1;
+            const versionNumStr = String(versionNumRaw);
+
+            // Try multiple possible timestamp fields
+            const createdAtRaw = rev.created_at ?? rev.createdAt ?? rev.created_at_ms ?? rev.createdAtMs;
+            let createdAt = 'Unknown date';
+            if (createdAtRaw) {
+                const dateObj = new Date(createdAtRaw);
+                if (!isNaN(dateObj.getTime())) {
+                    createdAt = dateObj.toLocaleString();
+                }
+            }
+
+            // Skip obviously bad values
+            if (versionNumStr && versionNumStr !== 'undefined' && versionNumStr !== 'null') {
                 const opt = document.createElement('option');
-                opt.value = versionNum;
-                opt.textContent = `Revision ${versionNum} (${createdAt})`;
+                opt.value = versionNumStr;
+                opt.textContent = `Revision ${versionNumStr} (${createdAt})`;
                 elements.versionSelect.appendChild(opt);
             }
         });
 
         if (elements.versionSelect.options.length > 0) {
             elements.versionSelect.selectedIndex = 0;
+        } else {
+            log('No valid revisions found for this project.');
         }
 
         elements.projectInfo.textContent = `Title: ${currentProject.title} | Author: @${currentProject.created_by.username}`;
