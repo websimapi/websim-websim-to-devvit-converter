@@ -1,5 +1,5 @@
 import JSZip from 'jszip';
-import * as lucide from 'lucide';
+import { createIcons, icons } from 'lucide';
 import { 
     parseProjectIdentifier, 
     getProjectById, 
@@ -16,7 +16,7 @@ import {
 } from './devvit-templates.js';
 
 // Initialize Lucide icons
-lucide.createIcons();
+createIcons({ icons });
 
 const elements = {
     projectInput: document.getElementById('projectInput'),
