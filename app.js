@@ -75,12 +75,22 @@ async function handleFetch() {
         currentRevisions = revisions;
         
         elements.versionSelect.innerHTML = '';
+        // Websim API sometimes uses 'revision' and sometimes 'version'
         revisions.forEach(rev => {
-            const opt = document.createElement('option');
-            opt.value = rev.version;
-            opt.textContent = `Revision ${rev.version} (${new Date(rev.created_at).toLocaleString()})`;
-            elements.versionSelect.appendChild(opt);
+            const versionNum = rev.revision ?? rev.version;
+            const createdAt = rev.created_at ? new Date(rev.created_at).toLocaleString() : 'Unknown date';
+            
+            if (versionNum !== undefined) {
+                const opt = document.createElement('option');
+                opt.value = versionNum;
+                opt.textContent = `Revision ${versionNum} (${createdAt})`;
+                elements.versionSelect.appendChild(opt);
+            }
         });
+
+        if (elements.versionSelect.options.length > 0) {
+            elements.versionSelect.selectedIndex = 0;
+        }
 
         elements.projectInfo.textContent = `Title: ${currentProject.title} | Author: @${currentProject.created_by.username}`;
         elements.versionSection.classList.remove('hidden');
@@ -96,6 +106,11 @@ async function handleFetch() {
 async function handleConvert() {
     if (!currentProject) return;
     const version = elements.versionSelect.value;
+    
+    if (!version || version === "undefined") {
+        alert("Please select a valid revision first.");
+        return;
+    }
     
     try {
         showLoading("Downloading assets from WebSim...");

@@ -51,7 +51,11 @@ export async function getAllProjectRevisions(projectId) {
 }
 
 export function getAssets(projectId, version) {
-    return makeRequest(`/projects/${projectId}/revisions/${version}/assets`);
+    const versionNum = parseInt(version, 10);
+    if (isNaN(versionNum)) {
+        throw new Error(`Invalid version number: ${version}`);
+    }
+    return makeRequest(`/projects/${projectId}/revisions/${versionNum}/assets`);
 }
 
 export function parseProjectIdentifier(input) {
