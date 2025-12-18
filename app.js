@@ -2,8 +2,7 @@ import JSZip from 'jszip';
 import { createIcons, icons } from 'lucide';
 import { 
     parseProjectIdentifier, 
-    getProjectById, 
-    getProjectBySlug, 
+    fetchProjectMetadata,
     getAllProjectRevisions, 
     getAssets, 
     processAssets 
@@ -60,12 +59,7 @@ async function handleFetch() {
         const identifier = parseProjectIdentifier(input);
         
         log(`Loading project data for ${identifier.type}...`);
-        let projectData;
-        if (identifier.type === 'id') {
-            projectData = await getProjectById(identifier.value);
-        } else {
-            projectData = await getProjectBySlug(identifier.username, identifier.slug);
-        }
+        const projectData = await fetchProjectMetadata(identifier);
 
         currentProject = projectData.project;
         log(`Project found: ${currentProject.title}`);
@@ -75,12 +69,11 @@ async function handleFetch() {
         currentRevisions = revisions;
         
         elements.versionSelect.innerHTML = '';
-        // Websim API sometimes uses 'revision' and sometimes 'version'
         revisions.forEach(rev => {
-            const versionNum = rev.revision ?? rev.version;
+            const versionNum = rev.revision;
             const createdAt = rev.created_at ? new Date(rev.created_at).toLocaleString() : 'Unknown date';
             
-            if (versionNum !== undefined) {
+            if (versionNum !== undefined && versionNum !== null) {
                 const opt = document.createElement('option');
                 opt.value = versionNum;
                 opt.textContent = `Revision ${versionNum} (${createdAt})`;
